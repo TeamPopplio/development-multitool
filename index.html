@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title id="header">Development Multitool</title>
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="./css/photon-devmultitool.css">
+    <script>
+      const { dialog, shell } = require('electron').remote,
+        flkconverter = require("flk-to-obj-converter"),
+        fs = require("fs"),
+        { spawn } = require('child_process'),
+        chunks = [],
+        package = require("./package.json")
+      let flkdialog,
+        objdialog,
+        cvsdirdialog,
+        cvsoutdialog,
+        cvsexe = "cvs";
+      function ready(fn) {
+        if (document.readyState != 'loading'){
+          fn();
+        } else {
+          document.addEventListener('DOMContentLoaded', fn);
+        }
+      }
+      function showOne(element) {
+        document.getElementById("home").style.display = "none";
+        //document.getElementById("credits").style.display = "none";
+        document.getElementById("license").style.display = "none";
+        document.getElementById("flk").style.display = "none";
+        document.getElementById("cvs").style.display = "none";
+        document.getElementById("home-button").className = "nav-group-item";
+        //document.getElementById("credits-button").className = "nav-group-item";
+        document.getElementById("license-button").className = "nav-group-item";
+        document.getElementById("flk-button").className = "nav-group-item";
+        document.getElementById("cvs-button").className = "nav-group-item";
+        document.getElementById(element).style.display = "block";
+        document.getElementById(element+"-button").className = "nav-group-item active";
+        document.getElementById("title").textContent = document.getElementById(element+"-button").textContent;
+      }
+      ready(() => {
+        var hb = document.getElementById("home-button")
+        hb.onclick = () => showOne("home")
+        //var cb = document.getElementById("credits-button")
+        //cb.onclick = () => showOne("credits")
+        var lb = document.getElementById("license-button")
+        lb.onclick = () => showOne("license")
+        var fb = document.getElementById("flk-button")
+        fb.onclick = () => showOne("flk")
+        var cvsb = document.getElementById("cvs-button")
+        cvsb.onclick = () => showOne("cvs")
+        document.getElementById("header").innerText = "Development Multitool (v"+package.version+")"
+        document.getElementById("footer").innerText = "Development Multitool (v"+package.version+")"
+      })
+    </script> 
+  </head>
+  <body>
+    <div class="window">
+      <script>
+        function ready(fn) {
+          if (document.readyState != 'loading'){
+            fn();
+          } else {
+            document.addEventListener('DOMContentLoaded', fn);
+          }
+        }
+      </script>
+      <!-- .toolbar-header sits at the top of your app -->
+      <header class="toolbar toolbar-header">
+        <h1 class="title" id="title">Home</h1>
+      </header>
+      <!-- Your app's content goes inside .window-content -->
+      <div class="window-content">
+        <div class="pane-group">
+          <div class="pane pane-sm sidebar">
+            <nav class="nav-group">
+              <h5 class="nav-group-title">Info</h5>
+              <span class="nav-group-item active" id="home-button">
+                <span class="icon icon-home"></span>
+                Home
+              </span>
+              <!--<span class="nav-group-item" id="credits-button">
+                <span class="icon icon-newspaper"></span>
+                Credits
+              </span>!-->
+              <span class="nav-group-item" id="license-button">
+                <span class="icon icon-attention"></span>
+                License
+              </span>
+              <h5 class="nav-group-title">Tools</h5>
+              <span class="nav-group-item" id="flk-button">
+                <span class="icon icon-doc-text"></span>
+                FLK Converter
+              </span>
+              <span class="nav-group-item" id="cvs-button">
+                <span class="icon icon-download"></span>
+                CVS Checkout
+              </span>
+            </nav>
+          </div>
+          <div class="pane" id="home" style="display: block;">
+            <div style="margin-left: 10px;">
+              <p>Welcome to the Development Multitool!
+                <br><br>This tool will allow for the extraction, viewing, and editing of various files within a bundled development suite.
+                <br><br>You may use the tools on the sidebar to perform different tasks.
+                <br><br><button class="btn btn-warning" id="discord" onclick="shell.openExternal('https:\/\/discord.gg/SxXD34p');">Discord</button>
+                <button class="btn btn-warning" id="github" onclick="shell.openExternal('https:\/\/github.com/TeamPopplio/development-multitool');">Github</button>
+              </p>
+            </div>
+          </div>
+          <!--<div class="pane" id="credits" style="display: none;text-align:center">
+            <br>
+            <p class="title">Credits</p>
+          </div>!-->
+          <div class="pane" id="license" style="display: none">
+            <div style="margin-left: 10px;">
+              <p>Copyright (c) 2020 KiwifruitDev
+                <br>All rights reserved.
+                <br>
+                <br>Permission is hereby granted, free of charge, to any person obtaining a copy
+                <br>of this software and associated documentation files (the "Software"), to deal
+                <br>in the Software without restriction, including without limitation the rights
+                <br>to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+                <br>copies of the Software, and to permit persons to whom the Software is
+                <br>furnished to do so, subject to the following conditions:
+                <br>
+                <br>The above copyright notice and this permission notice shall be included in
+                <br>all copies or substantial portions of the Software.
+                <br>
+                <br>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+                <br>IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+                <br>FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+                <br>AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+                <br>LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+                <br>OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+                <br>THE SOFTWARE.
+              </p>
+            </div>
+          </div>
+          <div class="pane" id="flk" style="display: none">
+            <div style="margin-left: 10px;">
+              <p>This tool will allow for the conversion of *.flk models to the Wavefront OBJ format (*.obj).
+                <br><br>Select a *.flk model:
+              <br><button class="btn btn-primary" id="flk-picker" onclick="
+                  dialog.showOpenDialog({
+                    properties: ['openFile'],
+                    multiSelections: false,
+                    filters:[
+                      {name:'FLK Model',extensions: ['flk']}
+                    ],
+                    title:'Choose *.flk model'
+                  }).then(data => {
+                    flkdialog = data.filePaths[0]
+                    this.innerText = flkdialog
+                  })
+                ">Choose *.flk file</button>
+                <br>Select an *.obj output:
+                <br><button class="btn btn-primary" id="obj-picker" onclick="
+                  dialog.showSaveDialog({
+                    filters:[
+                      {name:'Wavefront OBJ',extensions: ['obj']}
+                    ],
+                    title:'Choose *.obj output'
+                  }).then(data => {
+                    objdialog = data.filePath
+                    this.innerText = objdialog
+                  })
+                ">Choose output *.obj file</button>
+                <br>Conversion type:
+                <br><input type="radio" id="face-pick" name="flkfaces" value="true" checked>
+                <label for="true">Verts & faces</label>
+                <input type="radio" id="vert-pick" name="flkfaces" value="false">
+                <label for="false">Verts only</label>
+                <br><br><button class="btn btn-positive" id="start-conversion" onclick="
+                  if(flkdialog != undefined && objdialog != undefined) {
+                    flkconverter.convertFromBuffer(fs.readFileSync(flkdialog),'utf8',document.getElementById('face-pick').checked).then(result => {
+                      fs.writeFileSync(objdialog,result);
+                    })
+                    document.getElementById('finished').textContent = 'Finished!'
+                    document.getElementById('wroteto').textContent = 'Wrote to '+objdialog
+                  }
+                ">Convert</button>
+                <br><br><p id="finished"></p><p id="wroteto"></p>
+              </p>
+            </div>
+          </div>
+          <div class="pane" id="cvs" style="display: none">
+            <div style="margin-left: 10px;">
+              <p>This tool will checkout an entire CVS repository to a directory.
+                <br><br>Select a native CVS executable: (Default is the 'cvs' command)
+                <br><button class="btn btn-primary" id="cvs-dir-picker" onclick="
+                  dialog.showOpenDialog({
+                    properties: ['openFile'],
+                    multiSelections: false,
+                    title:'Choose CVS executable'
+                  }).then(data => {
+                    cvsexe = data.filePaths[0]
+                    this.innerText = cvsexe
+                  })
+                ">cvs</button>
+                <br>Select a repository directory:
+                <br><button class="btn btn-primary" id="cvs-dir-picker" onclick="
+                  dialog.showOpenDialog({
+                    properties: ['openDirectory'],
+                    multiSelections: false
+                  }).then(data => {
+                    cvsdirdialog = data.filePaths[0]
+                    this.innerText = cvsdirdialog
+                  })
+                ">Choose repository directory</button>
+                <br>Select an output directory:
+                <br><button class="btn btn-primary" id="cvs-out-picker" onclick="
+                  dialog.showOpenDialog({
+                    properties: ['openDirectory'],
+                    multiSelections: false
+                  }).then(data => {
+                    cvsoutdialog = data.filePaths[0]
+                    this.innerText = cvsoutdialog
+                  })
+                ">Choose output directory</button>
+                <br><br><button class="btn btn-positive" id="cvs-checkout" onclick="
+                  document.getElementById('stdout').value = ''
+                  document.getElementById('stdout').style.display = 'none'
+                  document.getElementById('stdout-label').style.display = 'none'
+                  if(cvsdirdialog != undefined && cvsoutdialog != undefined) {
+                    const initchild = spawn(cvsexe, ['-d',cvsdirdialog,'init'],{cwd:cvsoutdialog,windowsHide:true});
+                    const child = spawn(cvsexe, ['-d',cvsdirdialog,'checkout','.'],{cwd:cvsoutdialog,windowsHide:true});
+                    let cycle = false
+                      //newline = '\n'
+                    function output(chunk) {
+                      var str = chunk.toString(),
+                        lines = str.split(/(\r?\n)/g);
+                      for (var i=0; i<lines.length; i++) {
+                        if(!cycle) {
+                          cycle = true
+                          document.getElementById('stdout').style.display = 'block'
+                          document.getElementById('stdout-label').style.display = 'block'
+                          document.getElementById('stdout').value = lines[i]
+                        } else {
+                          document.getElementById('stdout').value = document.getElementById('stdout').value+lines[i]
+                        }
+                      }
+                    }
+                    child.stdout.on('data', chunk => output(chunk));
+                    child.stderr.on('data', chunk => output(chunk))
+                  } else {
+                    document.getElementById('stdout').style.display = 'block'
+                    document.getElementById('stdout-label').style.display = 'block'
+                    if(cvsdirdialog == undefined && cvsoutdialog != undefined)
+                      document.getElementById('stdout').value = 'No repository directory specified!'
+                    else if(cvsdirdialog != undefined && cvsoutdialog == undefined)
+                      document.getElementById('stdout').value = 'No output directory specified!'
+                    else
+                      document.getElementById('stdout').value = 'No values specified!'
+                  }
+                  
+                ">Checkout</button>
+                <br><br><label for="stdout" id="stdout-label" style="display: none">Output</label>
+                <textarea id="stdout" disabled name="stdout" rows="10" cols="70" style="display: none"></textarea>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="toolbar toolbar-footer">
+        <h1 class="title" id="footer">Development Multitool</h1>
+      </footer>
+    </div>
+  </body>
+</html>

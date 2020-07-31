@@ -5,7 +5,12 @@ This [Electron](https://www.electronjs.org/) frontend allows for easy access to 
 ## Tools
 
 [FLK to Wavefront OBJ converter](https://github.com/TeamPopplio/flk-to-obj-converter)
+
 [CVS Checkout](http://savannah.nongnu.org/projects/cvs)
+
+[Symbol Viewer](http://www.mingw.org/)
+
+[Image Viewer](https://imagemagick.org/)
 
 ## Multitool Usage
 
@@ -19,11 +24,23 @@ Be aware that not all FLK file formats are supported, try using the 'Verts only'
 
 ## 'CVS Checkout' Usage
 
-To use the 'CVS Checkout' tool, you must download a copy of the ``cvs`` executable.
+To use the 'CVS Checkout' tool, you must first download a copy of the ``cvs`` executable.
 
 Download and extract the zip file for your platform [here](http://download.savannah.gnu.org/releases/cvs/binary/stable/) (``x86-woe/`` for Windows) and place the executable somewhere.
 
 You may add it to your PATH variable but it's not necessary.
+
+## 'Symbol Viewer' Usage
+
+To use the 'Symbol Viewer' tool, you must first be running on an environment with the 'objdump' command natively supported.
+
+On windows, you can download [MinGW](http://www.mingw.org/wiki/getting_started) and install the 'mingw32-binutils-bin' package.
+
+## 'Image Viewer' Usage
+
+To use the 'Image Viewer' tool, you must first install [ImageMagick](https://imagemagick.org/script/download.php).
+
+If you're on Windows, the 'convert' program is not available. You must change its executable to your 'magick.exe' path.
 
 ## Screenshots
 
@@ -32,6 +49,10 @@ You may add it to your PATH variable but it's not necessary.
 ![FLK Converter](github-assets/flk.png)
 
 ![CVS Checkout](github-assets/cvs.png)
+
+![Symbol Viewer](github-assets/objdump.png)
+
+![Image Viewer](github-assets/imgviewer.png)
 
 ## License
 
@@ -58,8 +79,26 @@ THE SOFTWARE.
 
 ## Software Used
 
-[Electron](https://www.electronjs.org/) (Licensed under the MIT License)
-[Electron Forge](https://www.electronforge.io/) (Licensed under the MIT License)
-[Photon](http://photonkit.com/) (Licensed under the MIT License)
-[FLK to OBJ Converter](https://github.com/TeamPopplio/flk-to-obj-converter) (Licensed under the MIT License)
-[Concurrent Versions System](http://savannah.nongnu.org/projects/cvs) (Licensed under the GNU General Public License, version 2)
+The software mentioned below are all licensed under the MIT License.
+
+[Electron](https://www.electronjs.org/)
+
+[Electron Forge](https://www.electronforge.io/)
+
+[Photon](http://photonkit.com/)
+
+[FLK to OBJ Converter](https://github.com/TeamPopplio/flk-to-obj-converter)
+
+## Software Mentioned
+
+The software mentioned below are not included with this application.
+
+[Concurrent Versions System](http://savannah.nongnu.org/projects/cvs)
+
+[MinGW](http://www.mingw.org/)
+
+[ImageMagick](https://imagemagick.org/)
+
+## Discord
+
+You may join the Discord guild for this application [here](https://discord.gg/SxXD34p).

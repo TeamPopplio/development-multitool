@@ -15,7 +15,11 @@
         objdialog,
         cvsdirdialog,
         cvsoutdialog,
-        cvsexe = "cvs";
+        cvsexe = "cvs",
+        objdumpinput,
+        objdumpexe = "objdump",
+        imagepath,
+        imexe = "convert";
       function ready(fn) {
         if (document.readyState != 'loading'){
           fn();
@@ -29,11 +33,15 @@
         document.getElementById("license").style.display = "none";
         document.getElementById("flk").style.display = "none";
         document.getElementById("cvs").style.display = "none";
+        document.getElementById("objdump").style.display = "none";
+        document.getElementById("img").style.display = "none";
         document.getElementById("home-button").className = "nav-group-item";
         //document.getElementById("credits-button").className = "nav-group-item";
         document.getElementById("license-button").className = "nav-group-item";
         document.getElementById("flk-button").className = "nav-group-item";
         document.getElementById("cvs-button").className = "nav-group-item";
+        document.getElementById("objdump-button").className = "nav-group-item";
+        document.getElementById("img-button").className = "nav-group-item";
         document.getElementById(element).style.display = "block";
         document.getElementById(element+"-button").className = "nav-group-item active";
         document.getElementById("title").textContent = document.getElementById(element+"-button").textContent;
@@ -49,6 +57,10 @@
         fb.onclick = () => showOne("flk")
         var cvsb = document.getElementById("cvs-button")
         cvsb.onclick = () => showOne("cvs")
+        var objb = document.getElementById("objdump-button")
+        objb.onclick = () => showOne("objdump")
+        var imgb = document.getElementById("img-button")
+        imgb.onclick = () => showOne("img")
         document.getElementById("header").innerText = "Development Multitool (v"+package.version+")"
         document.getElementById("footer").innerText = "Development Multitool (v"+package.version+")"
       })
@@ -95,6 +107,14 @@
               <span class="nav-group-item" id="cvs-button">
                 <span class="icon icon-download"></span>
                 CVS Checkout
+              </span>
+              <span class="nav-group-item" id="objdump-button">
+                <span class="icon icon-map"></span>
+                Symbol Viewer
+              </span>
+              <span class="nav-group-item" id="img-button">
+                <span class="icon icon-picture"></span>
+                Image Viewer
               </span>
             </nav>
           </div>
@@ -187,6 +207,7 @@
           <div class="pane" id="cvs" style="display: none">
             <div style="margin-left: 10px;">
               <p>This tool will checkout an entire CVS repository to a directory.
+                <br>You must install CVS for this tool to function.
                 <br><br>Select a native CVS executable: (Default is the 'cvs' command)
                 <br><button class="btn btn-primary" id="cvs-dir-picker" onclick="
                   dialog.showOpenDialog({
@@ -257,6 +278,121 @@
                 ">Checkout</button>
                 <br><br><label for="stdout" id="stdout-label" style="display: none">Output</label>
                 <textarea id="stdout" disabled name="stdout" rows="10" cols="70" style="display: none"></textarea>
+              </p>
+            </div>
+          </div>
+          <div class="pane" id="objdump" style="display: none">
+            <div style="margin-left: 10px;">
+              <p>This tool will output the symbols of an object file (*.o).
+                <br>You must install 'binutils' for this tool to function. (MinGW binutils for Windows)
+                <br><br>Select a native 'objdump' executable: (Default is the 'objdump' command)
+                <br><button class="btn btn-primary" id="objdump-exe-picker" onclick="
+                  dialog.showOpenDialog({
+                    properties: ['openFile'],
+                    multiSelections: false,
+                    title:`Choose 'objdump' executable`
+                  }).then(data => {
+                    objdumpexe = data.filePaths[0]
+                    this.innerText = objdumpexe
+                  })
+                ">objdump</button>
+                <br>Select an *.o file:
+                <br><button class="btn btn-primary" id="objdump-input-picker" onclick="
+                  dialog.showOpenDialog({
+                    properties: ['openFile'],
+                    multiSelections: false,
+                    filters:[
+                      {name:'Object',extensions: ['o']}
+                    ],
+                    title:`Choose *.o file`
+                  }).then(data => {
+                    objdumpinput = data.filePaths[0]
+                    this.innerText = objdumpinput
+                  })
+                ">Choose *.o file</button>
+                <br><br><button class="btn btn-positive" id="objdump-submit" onclick="
+                  document.getElementById('stdoutobj').value = ''
+                  document.getElementById('stdoutobj').style.display = 'none'
+                  document.getElementById('stdoutobj-label').style.display = 'none'
+                  const child = spawn(objdumpexe, ['-t',objdumpinput],{windowsHide:true});
+                  let cycle = false
+                    //newline = '\n'
+                  function output(chunk) {
+                    var str = chunk.toString(),
+                      lines = str.split(/(\r?\n)/g);
+                    for (var i=0; i<lines.length; i++) {
+                      if(!cycle) {
+                        cycle = true
+                        document.getElementById('stdoutobj').style.display = 'block'
+                        document.getElementById('stdoutobj-label').style.display = 'block'
+                        document.getElementById('stdoutobj').value = lines[i]
+                      } else {
+                        document.getElementById('stdoutobj').value = document.getElementById('stdoutobj').value+lines[i]
+                      }
+                    }
+                  }
+                  child.stdout.on('data', chunk => output(chunk));
+                  child.stderr.on('data', chunk => output(chunk))
+                ">Submit</button>
+                <br><br><label for="stdoutobj" id="stdoutobj-label" style="display: none">Output</label>
+                <textarea id="stdoutobj" disabled name="stdoutobj" rows="10" cols="70" style="display: none"></textarea>
+              </p>
+            </div>
+          </div>
+          <div class="pane" id="img" style="display: none">
+            <div style="margin-left: 10px;">
+              <p>This tool will allow for the conversion of various unknown image files.
+                <br>You must install ImageMagick for this tool to work.
+                <br><br>Select a native 'magick' executable: (Default is the 'convert' command for non-Windows support)
+                <br><button class="btn btn-primary" id="objdump-exe-picker" onclick="
+                  document.getElementById('finalimg').style.display = 'none'
+                  dialog.showOpenDialog({
+                    properties: ['openFile'],
+                    multiSelections: false,
+                    title:`Choose 'objdump' executable`
+                  }).then(data => {
+                    imexe = data.filePaths[0]
+                    this.innerText = imexe
+                  })
+                ">convert</button>
+                <br>Select an image file: (This can be any type)
+                <br><button class="btn btn-primary" id="image-picker" onclick="
+                  dialog.showOpenDialog({
+                    properties: ['openFile'],
+                    multiSelections: false,
+                    title:`Choose image file`
+                  }).then(data => {
+                    imagepath = data.filePaths[0]
+                    this.innerText = imagepath
+                  })
+                ">Choose an image file</button>
+                <br>Select an output file: (This can be any type)
+                <br><button class="btn btn-primary" id="image-picker" onclick="
+                  dialog.showSaveDialog({
+                    properties: ['saveFile'],
+                    multiSelections: false,
+                    title:`Choose output file`
+                  }).then(data => {
+                    imagepath2 = data.filePath
+                    this.innerText = imagepath2
+                  })
+                ">Choose an image file</button>
+                <br><br><button class="btn btn-positive" id="image-submit" onclick="
+                  const child = spawn(imexe, [imagepath,imagepath2], {windowsHide:true});
+                  child.on('exit', (code) => {
+                    if (code != 0) {
+                      document.getElementById('finished2').innerText = 'An error has occured.'
+                      document.getElementById('wroteto2').innerText = 'Try placing the files into paths that do not contain spaces.'
+                    } else {
+                      document.getElementById('finished2').innerText = 'Finished!'
+                      document.getElementById('wroteto2').innerText = 'Wrote to '+imagepath2
+                      document.getElementById('finalimg').src = 'file:\/\/\/'+imagepath2
+                      document.getElementById('finalimg').style.display = 'block'
+                    }
+                  });
+                ">Submit</button>
+                <br><br><p id="finished2"></p><p id="wroteto2"></p>
+                <img id="finalimg" style='display:none;'/>
               </p>
             </div>
           </div>
